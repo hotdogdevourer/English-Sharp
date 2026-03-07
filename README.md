@@ -8,8 +8,11 @@ It is a simple esoteric programming language interpreted in Python, it has Engli
 E# (English Sharp) is a natural language-based programming language interpreter written in Python. It allows users to write code using English-like syntax, making programming accessible without traditional syntax barriers. This interpreter supports variables, control flow, functions, structures, file operations, and various libraries.
 
 Version: 3.2
+
 Author: hotdogdevourer (Alias: Iris500)
+
 License: MIT
+
 Filename: parser1.py
 
 ## Requirements
