@@ -29,7 +29,7 @@ import statistics as stats_module
 
 # --- Configuration ---
 VALID_COMMANDS = [
-    "this script uses", "the number", "the text", "the value of",
+    "this script uses:", "the number", "the text", "the value of",
     "do the following", "end doing", "while", "end while", "if", "end if", "otherwise if", "otherwise",
     "create a function", "end function definition", "give back",
     "create a structure", "end structure definition",
@@ -194,37 +194,37 @@ DOCUMENTATION = {
         "category": "Libraries",
         "description": "Mathematical functions library",
         "functions": ["sqrt", "pow", "sin", "cos", "tan", "abs", "floor", "ceil", "round", "min", "max", "mean", "median", "variance"],
-        "usage": "Must enable with: this script uses mathlib"
+        "usage": "Must enable with:  this script uses: mathlib"
     },
     "random": {
         "category": "Libraries",
         "description": "Random number generation library",
         "functions": ["generate a random number from X to Y", "shuffle_list"],
-        "usage": "Must enable with: this script uses random"
+        "usage": "Must enable with: this script uses: random"
     },
     "osrand": {
         "category": "Libraries",
         "description": "Secure OS random number generation",
         "functions": ["generate an os random number", "os random bytes"],
-        "usage": "Must enable with: this script uses osrand"
+        "usage": "Must enable with: this script uses: osrand"
     },
     "easyio": {
         "category": "Libraries",
         "description": "Easy input/output operations",
         "functions": ["display", "show", "ask"],
-        "usage": "Must enable with: this script uses easyio"
+        "usage": "Must enable with: this script uses: easyio"
     },
     "syslib": {
         "category": "Libraries",
         "description": "System-level operations (write, read, platform info)",
         "functions": ["sys write", "sys read", "sys get platform"],
-        "usage": "Must enable with: this script uses syslib"
+        "usage": "Must enable with: this script uses: syslib"
     },
     "strproclib": {
         "category": "Libraries",
         "description": "String processing and manipulation",
         "functions": ["substring", "split", "join", "replace", "uppercase", "lowercase", "trim", "regex_match", "length"],
-        "usage": "Must enable with: this script uses strproclib"
+        "usage": "Must enable with: this script uses: strproclib"
     },
     "operators": {
         "category": "Reference",
@@ -248,6 +248,8 @@ DOCUMENTATION = {
         }
     }
 }
+
+VALID_LIBRARIES = {'mathlib', 'random', 'osrand', 'easyio', 'syslib', 'strproclib'}
 
 def display_help(topic):
     """Display help documentation for a topic"""
@@ -1265,7 +1267,23 @@ def first_pass_analysis(lines_with_nums, original_lines):
                 libs = re.findall(r'\b(\w+)\b', libs_str)
                 for lib in libs:
                     if lib.lower() not in ['the', 'and', 'libraries', 'uses']:
+                        # Validate library name
+                        if lib.lower() not in VALID_LIBRARIES:
+                            raise_error(
+                                f"a valid library name ({', '.join(sorted(VALID_LIBRARIES))})", 
+                                line, 
+                                line_num, 
+                                original_lines
+                            )
                         enabled_libs.add(lib.lower())
+            else:
+                # ERROR IF COLON IS MISSING
+                raise_error(
+                    "a colon after 'uses' or 'libraries' (e.g., 'this script uses: mathlib')", 
+                    line, 
+                    line_num, 
+                    original_lines
+                )
         elif line.startswith("the number") or line.startswith("the text") or line.startswith("the value of"):
             var_match = re.match(r'the\s+(number|text|value\s+of\s+\w+)\s+(\w+)\s+is\s+(.+?)\s+and\s+it\s+should\s+be\s+(\w+)', line)
             if var_match:
@@ -1632,7 +1650,23 @@ def execute_block(lines_with_nums, variables, allowed_libs, functions=None, stru
                 libs = re.findall(r'\b(\w+)\b', libs_str)
                 for lib in libs:
                     if lib.lower() not in ['the', 'and', 'libraries', 'uses']:
+                        # Validate library name
+                        if lib.lower() not in VALID_LIBRARIES:
+                            raise_error(
+                                f"a valid library name ({', '.join(sorted(VALID_LIBRARIES))})", 
+                                line, 
+                                line_num, 
+                                original_lines
+                            )
                         allowed_libs.add(lib.lower())
+            else:
+                # ERROR IF COLON IS MISSING
+                raise_error(
+                    "a colon after 'uses' or 'libraries' (e.g., 'this script uses: mathlib')", 
+                    line, 
+                    line_num, 
+                    original_lines
+                )
 
         # Variable Declaration
         elif clean_line.startswith("the number") or clean_line.startswith("the text"):
@@ -1657,8 +1691,10 @@ def execute_block(lines_with_nums, variables, allowed_libs, functions=None, stru
                 else:
                     raise_error(f"a valid type (int, flt, str, dec, frc), but got: {var_type}", line, line_num, original_lines)
 
-        # Math Operations (Natural Language) - ENHANCED with bitwise and boolean
+        # Math Operations (Natural Language)
         elif clean_line.startswith("the value of") and ("should be" in clean_line or "equals" in clean_line):
+            if 'mathlib' not in allowed_libs:
+                raise_error("the mathlib library to be enabled (use: this script uses: mathlib)", line, line_num, original_lines)
             math_match = re.match(r'the\s+value\s+of\s+(\w+)\s+(?:should\s+be|equals)\s+(.+)', clean_line)
             if math_match:
                 output_var = math_match.group(1)
@@ -1729,6 +1765,8 @@ def execute_block(lines_with_nums, variables, allowed_libs, functions=None, stru
 
         # Display/Show
         elif clean_line.startswith("display") or clean_line.startswith("show"):
+            if 'easyio' not in allowed_libs:
+                raise_error("the easyio library to be enabled (use: this script uses: easyio)", line, line_num, original_lines)
             text_match = re.match(r'(?:display|show)\s+(?:the\s+text\s+)?"(.+?)"', clean_line)
             if text_match:
                 text = text_match.group(1)
@@ -1738,6 +1776,8 @@ def execute_block(lines_with_nums, variables, allowed_libs, functions=None, stru
 
         # Input
         elif clean_line.startswith("ask"):
+            if 'easyio' not in allowed_libs:
+                raise_error("the easyio library to be enabled (use: this script uses: easyio)", line, line_num, original_lines)
             input_match = re.match(r'ask\s+"(.+?)"\s+and\s+save\s+the\s+answer\s+in\s+(\w+)\s+as\s+(?:an?\s+)?(\w+)', clean_line)
             if input_match:
                 prompt = input_match.group(1)
@@ -1981,6 +2021,9 @@ display the text "Welcome to E# (English Sharp)!"
             print("\n(interrupted)")
         except Exception as e:
             print(f"Error: {e}")
+
+# ask "What is your name? " and save the answer in name as string
+# display the text "Hi {name}!"
 
 if __name__ == "__main__":
     import sys
