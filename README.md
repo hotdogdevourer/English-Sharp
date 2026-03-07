@@ -24,7 +24,7 @@ Filename: parser1.py
 To execute an E# script file, pass the filename as an argument to the parser.
 
 ```bash
-python parser1.py script.e#
+python parser1.py script.esh
 ```
 
 ### Interactive REPL Mode
