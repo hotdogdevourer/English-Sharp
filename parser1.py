@@ -41,7 +41,7 @@ VALID_COMMANDS = [
     "list files", "create directory", "move file"
 ]
 
-FILLER_WORDS = {'please', 'lol', 'um', 'uh', 'like', 'actually', 'basically', 'just', 'really', 'very', 'an', 'a'}
+FILLER_WORDS = {'please', 'lol', 'um', 'uh', 'like', 'actually', 'basically', 'just', 'really', 'very'}
 
 # --- Documentation System ---
 DOCUMENTATION = {
@@ -2028,22 +2028,35 @@ display the text "Welcome to E# (English Sharp)!"
 if __name__ == "__main__":
     import sys
     print("""
-███████╗ ██╗ ██╗ 
+███████╗ ██╗ ██╗
 ██╔════╝████████╗
 █████╗  ╚██╔═██╔╝
 ██╔══╝  ████████╗
 ███████╗╚██╔═██╔╝
 ╚══════╝ ╚═╝ ╚═╝ """)
     
-    if len(sys.argv) > 1:
-        # File mode
-        filename = sys.argv[1]
-        try:
-            with open(filename, 'r') as f:
-                code = f.read()
-            parse_data(code)
-        except FileNotFoundError:
-            print(f"Error: File '{filename}' not found")
-    else:
-        # REPL mode
-        repl_mode()
+    while True:
+        print("\n--- E# v3.2 CLI Menu ---")
+        print("1. Start Interactive REPL")
+        print("2. Run .esh file")
+        print("3. Exit")
+        
+        choice = input("\nEnter your choice (1-3): ").strip()
+        
+        if choice == '1':
+            repl_mode()
+        elif choice == '2':
+            filename = input("Enter the .esh file path: ").strip()
+            try:
+                with open(filename, 'r') as f:
+                    code = f.read()
+                parse_data(code)
+            except FileNotFoundError:
+                print(f"Error: File '{filename}' not found")
+            except Exception as e:
+                print(f"Error running file: {e}")
+        elif choice == '3':
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please select 1, 2, or 3.")
